@@ -1,0 +1,80 @@
+---
+title: "Drybeans_HW3"
+output: pdf_document
+---
+
+# Name - HW3 -REU
+
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(readr)
+library(maptools)
+library(ggplot2)
+library(raster)
+library(psych)
+library(gmodels)
+library(FactoMineR) #library for conducting PCA
+library(factoextra) # library for plotting PCA
+library(missMDA) #for imputing if you have missing data
+library(hyperoverlap)
+library(Rmisc)
+
+```
+
+## 1.	Import the data
+```{r}
+df <- read.csv("Dry_Bean_Dataset.csv")
+head(df)
+str(df)
+summary(df)
+df$Class=as.factor(df$Class)
+
+```
+
+## 2. Subset data for creating hyperplanes:
+```{r}
+test1 <- df[ which(df$Class=='SEKER'),]
+test2 <- df[ which(df$Class=='BARBUNYA'),]
+test3 <- df[ which(df$Class=='BOMBAY'),]
+
+ctest1<-rbind(test1,test3)
+head(ctest1)
+
+test4 <- df[ which(df$Class=='CALI'),]
+test5 <- df[ which(df$Class=='HOROZ'),]
+test6 <- df[ which(df$Class=='SIRA'),]
+test7 <- df[ which(df$Class=='DERMASON'),]
+
+```
+**3.	explore hyperplanes between two spceis**	
+```{r}
+#explore only three dimentions
+SEKER_BOMBEY3d <- hyperoverlap_detect(ctest1[,2:4], ctest1$Class)
+SEKER_BOMBEY3d@result             #gives us the result: overlap or non-overlap?
+SEKER_BOMBEY3d@shape 
+hyperoverlap_plot(SEKER_BOMBEY3d) #plot the data and the decision boundary in 3d
+
+
+##### Explore all the variables
+SEKER_BOMBEY4d <- hyperoverlap_detect(ctest1[,2:17], ctest1$Class)
+SEKER_BOMBEY4d@result             #gives us the result: overlap or non-overlap?
+SEKER_BOMBEY4d@shape              #for the non-overlapping pair, was the decision boundary linear
+transformed_data <- hyperoverlap_lda(SEKER_BOMBEY4d )  #plots the best two dimensions for 
+transformed_data <- hyperoverlap_lda(SEKER_BOMBEY4d , visualise3d=TRUE)  #visualising overlap in 3d
+
+```
+##4. Look at overlap between all species
+```{r}
+
+all_spp <- hyperoverlap_set(df[,2:4],df$Class)
+all_spp_plot <- hyperoverlap_pairs_plot(all_spp)
+all_spp_plot
+
+```
+
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
