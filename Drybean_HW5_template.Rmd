@@ -1,0 +1,208 @@
+---
+title: "Drybeans_HW4"
+output: pdf_document
+---
+
+# Name - HW4 -REU
+
+
+```{r setup, include=FALSE}
+library(readr)
+library(maptools)
+library(ggplot2)
+library(raster)
+library(psych)
+library(gmodels)
+library(FactoMineR) #library for conducting PCA
+library(factoextra) # library for plotting PCA
+library(missMDA) #for imputing if you have missing data
+library(hyperoverlap)
+library(Rmisc)
+library(car)
+library(dplyr)
+library(ggplot2)
+library(MuMIn)
+library(drc)
+library(rcompanion)
+library(nlstools)
+
+```
+
+## 1.	Import the data
+```{r}
+df <- read.csv("Dry_Bean_Dataset.csv")
+head(df)
+str(df)
+summary(df)
+df$Class=as.factor(df$Class)
+
+```
+
+## 2. Subset data for creating hyperplanes:
+```{r}
+ggplot(data=df,mapping=aes(x=Area,y=Eccentricity ,color=Class)) +
+  #geom_point() +
+  geom_smooth() +
+  theme_bw()+
+  labs(title="Area x Eccentricity") +
+  xlab("Area") +
+  ylab("Eccentricity")
+
+```
+**3.	Fit Regression line for the entire dataset**	
+```{r}
+fit_lm <- lm(Eccentricity~Area, df)
+summary(fit_lm)
+#SOYBEAN
+ci_fit_lm <- predict(fit_lm,x=Area,interval="confidence",level=0.95)
+pi_fit_lm <- predict(fit_lm,x=Area,interval="prediction",level=0.95)
+plot(x=df$Area,y=df$Eccentricity,xlab="Area",ylab="Eccentricity",main="Area x Eccentricity", ylim=c(0,1.2),col="purple")
+lines(df$Area,ci_fit_lm[,1], col="black")# plot best fit line
+lines(df$Area,ci_fit_lm[,2], col="red") #plot CI lower bound
+lines(df$Area,ci_fit_lm[,3], col="red") #plot CI upper bound
+lines(df$Area,pi_fit_lm[,2], col="gold")#plot PI lowerbound
+lines(df$Area,pi_fit_lm[,3], col="gold")#plot PI upperbound
+
+#####what about a polynomial
+fit_lm2 <- lm(Eccentricity~poly(Area,2), df)
+summary(fit_lm2)
+
+
+```
+##4. Fit non-linear fucntion
+```{r}
+
+fm <- drm(Eccentricity ~ Area, data = df, fct = G.3u())
+confint(fm)
+plot(fm)
+summary(fm)
+
+
+fit.lm    = lm(Eccentricity ~ Area, data = df)
+
+a.ini     = fit.lm$coefficients[1]
+b.ini     = fit.lm$coefficients[2]
+clx.ini   = mean(df$Area)
+
+###  Define linear plateau function
+
+linplat = function(x, a, b, clx)
+          {ifelse(x < clx, a + b * x,
+                           a + b * clx)}
+
+
+###  Find best fit parameters
+
+model = nls(Eccentricity ~ linplat(Area, a, b, clx),
+            data = df,
+            start = list(a   = a.ini,
+                         b   = b.ini,
+                         clx = clx.ini),
+             trace = FALSE,
+             nls.control(maxiter = 1000))
+
+summary(model)
+
+###  Define null model
+
+nullfunct = function(x, m){m}
+
+m.ini    = mean(df$Eccentricity)
+
+null = nls(Eccentricity ~ nullfunct(Area, m),
+           data = df,
+           start = list(m   = m.ini),
+           trace = FALSE,
+           nls.control(maxiter = 1000))
+
+
+###  Find p-value and pseudo R-squared
+
+
+
+nagelkerke(model, null)
+
+
+confint2(model, level = 0.95)
+Boot = nlsBoot(model)
+
+summary(Boot)
+
+
+plotPredy(data  = df,
+          x     = Area,
+          y     = Eccentricity,
+          model = model,
+          xlab  = "Area",
+          ylab  = "Eccentricity")
+
+
+###  Find reasonable initial values for parameters
+
+fit.lm    = lm(Eccentricity ~ Area, data=df)
+
+a.ini     = fit.lm$coefficients[1]
+b.ini     = fit.lm$coefficients[2]
+clx.ini   = mean(df$Area)
+
+
+###  Define quadratic plateau function
+
+quadplat = function(x, a, b, clx) {
+           ifelse(x  < clx, a + b * x   + (-0.5*b/clx) * x   * x,
+                            a + b * clx + (-0.5*b/clx) * clx * clx)}
+
+
+###  Find best fit parameters
+
+
+model = nls(Eccentricity ~ quadplat(Area, a, b, clx),
+            data = df,
+            start = list(a   = a.ini,
+                         b   = b.ini,
+                         clx = clx.ini),
+             trace = FALSE,
+             nls.control(maxiter = 1000))
+
+summary(model)
+
+###  Define null model
+
+nullfunct = function(x, m){m}
+
+m.ini    = mean(df$Eccentricity)
+
+null = nls(Eccentricity ~ nullfunct(Area, m),
+           data = df,
+           start = list(m   = m.ini),
+           trace = FALSE,
+           nls.control(maxiter = 1000))
+
+
+###  Find p-value and pseudo R-squared
+
+library(rcompanion)
+
+nagelkerke(model, null)
+
+confint2(model,level = 0.95)
+
+Boot = nlsBoot(model)
+
+summary(Boot)
+
+plotPredy(data  = df,
+          x     = Area,
+          y     = Eccentricity,
+          model = model,
+          xlab  = "Area",
+          ylab  = "Eccentricity")
+
+
+```
+
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
