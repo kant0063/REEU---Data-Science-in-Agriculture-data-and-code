@@ -1,0 +1,190 @@
+---
+title: "Drybeans_HW1"
+output: pdf_document
+---
+
+# Name - HW1 - REU
+
+
+```{r setup, include=FALSE}
+
+#library(tidyverse)
+library(readr)
+library(maptools)
+library(ggplot2)
+library(raster)
+library(psych)
+library(gmodels)
+library(Rmisc)
+library(dplyr)
+
+```
+
+## 1.	Import the data
+```{r}
+df <- read.csv("Dry_Bean_Dataset.csv")
+
+getwd()
+str(df)
+
+
+```
+
+## 2. Identify a numeric variable from the dataset:
+**a. Find the mean, median, variance (s2), standard deviation (sd), coefficient of variation (CV) and the standard error of the mean.**
+```{r}
+mean(df$Area) #calculating mean on variable of interest
+median(df$Area) #calculating median on variable of interest
+var(df$Area) #calculating variance if variable of interest
+sd(df$Area) #calculating standard deviation of variable of interest
+(sd(df$Area)/mean(df$Area))*100 #calculating coefficient of variation = standard deviation divided by mean times 100
+(sd(df$Area)/sqrt(length(df$Area))) #calculating standard error of the mean = standard deviation divided by square root
+
+```
+
+```{r}
+
+#library(psych)
+describe(df,type=2) #calculating all above measures with single command
+
+```
+
+**b.	Split the dataset by treatment and recalculate descriptive statistics by treatment.**	
+```{r}
+
+beantype1 <- filter(df,Class=="SEKER") #Pull out the first treatment of the df
+
+mean(beantype1$Area) #calculating mean
+median(beantype1$Area) #calculating median
+var(beantype1$Area) #calculating variance
+sd(beantype1$Area) #calculating standard deviation
+(sd(beantype1$Area)/mean(beantype1$Area))*100 #calculating coefficient of variation = standard deviation divided by mean times 100
+(sd(beantype1$Area)/sqrt(length(beantype1$Area))) #calculating standard error of the mean = standard deviation divided by square root
+
+beantype2 <- filter(df, Class=="CALI") #pull out the first treatment of the df
+mean(beantype2$Area) #calculating mean
+median(beantype2$Area) #calculating median
+var(beantype2$Area) #calculating variance
+sd(beantype2$Area) #calculating standard deviation
+(sd(beantype2$Area)/mean(beantype2$Area))*100 #calculating coefficient of variation = standard deviation divided by mean times 100
+(sd(beantype2$Area)/sqrt(length(beantype2$Area))) #calculating standard error of the mean = standard deviation divided by square root
+
+str(df)
+df$Class<-as.factor(df$Class)
+df<-na.omit(df)
+comb_stats <- 
+  df %>% 
+  group_by(Class) %>% # <- remember to group by the important factor
+  summarise(Area=mean(Area), Ecc=mean(Eccentricity), SDArea=sd(as.numeric(Area)), SDEcc = sd(Eccentricity))
+
+comb_stats
+
+```
+
+**Mutating Data**
+```{r}
+df.4 <- df %>%  #use dplyr to multipe the variable of choice by 4
+  summarize(Area*4) %>% 
+  mutate()
+
+df.15 <- df %>% #use dplyr to add 15 to the variable of choice
+  summarize(Area+15) %>% 
+  mutate()
+
+df.all <- cbind(df,df.15, df.4)#combine all modified variables into a single dataframe
+```
+
+
+**c.	Find the mean, median, variance, standard deviation, and coefficient of variation, and standard error of the mean for the same variable after you add 15 to each data value.**
+```{r}
+
+mean(df.15$Area) #calculating mean
+median(df.15$Area) #calculating median
+var(df.15$Area) #calculating variance
+sd(df.15$Area) #calculating standard deviation
+(sd(df.15$Area)/mean(df.15$Area))*100 #calculating coefficient of variation = standard deviation divided by mean times 100
+(sd(df.15$Area)/sqrt(length(df.15$Area))) #calculating standard error of the mean = standard deviation divided by square root
+
+```
+
+**d.	Repeat, but this time multiply each data value by 4.** 
+```{r}
+
+
+mean(df.4$Area) #calculating mean
+median(df.4$Area) #calculating median
+var(df.4$Area) #calculating variance
+sd(df.4$Area) #calculating standard deviation
+(sd(df.4$Area)/mean(df.4$Area))*100 #calculating coefficient of variation = standard deviation divided by mean times 100
+(sd(df.4$Area)/sqrt(length(df.4$Area))) #calculating standard error of the mean = standard deviation divided by square root
+
+```
+
+**e.	Describe what happens when you transform the data.**
+
+**Answer:** 
+
+**f.	Create a graphic of the distribution of the original and both transformed datasets on the same plot.**
+```{r}
+
+ggplot(df,mapping=aes(Class)) +
+  geom_boxplot(aes(y=Area),fill="red") +
+  geom_boxplot(aes(y=Area+15),fill="green") +
+  geom_boxplot(aes(y=Area*4),fill="blue") +
+  labs(title="Original and Transformed Datasets",x="Class",y="Area")
+
+ggplot(df,mapping=aes(x=Area,fill=Class)) +
+  geom_density(alpha=.2) +
+  labs(title="Density Distributions of Calories and Transformed",x="Area",y="Density")
+
+```
+
+## 3.	Construct a 95% and a 99% confidence interval for each treatment in the untransformed data
+```{r}
+
+ci95.trt1 <- ci(beantype1$Area,confidence=.95) #calculating confidence interval 95% for treatment 1
+ci95.trt2 <- ci(beantype2$Area,confidence=.95) #calculating confidence interval 95% for treatment 2
+
+ci99.trt1 <- ci(beantype1$Area,confidence=.99) #calculating confidence interval 99% for treatment 1
+ci99.trt2 <- ci(beantype2$Area,confidence=.99)#calculating confidence interval 99% for treatment 2
+
+ci <- as.data.frame(cbind(ci95.trt1,ci95.trt2,ci99.trt1,ci99.trt2)) #combine columns of CI data
+id <- c('trt1.ci95','trt2.ci95','trt1.ci99','trt2.ci99') #create id names for each column
+ci["ID"] <- id #add id to ci columns
+
+```
+
+## 4.	Create a graphical representation of your Confidence interval
+**a.	As a histogram**
+```{r}
+
+summary99 <- summarySE(df,measurevar="Area",groupvars='Class',conf.interval = 0.99) #create summary of variable
+
+ggplot(summary99,aes(x=Class,y=Area)) + 
+  geom_bar(position=position_dodge(), stat="identity") +
+  geom_errorbar(aes(ymin=Area-ci,   
+                    ymax=Area+ci),width=.2,position=position_dodge(.9)) +
+  labs(title="99% CI")
+  
+
+summary95 <- summarySE(df,measurevar="Area",groupvars='Class') #create summary of variable
+
+ggplot(summary95,aes(x=Class,y=Area)) + 
+  geom_bar(position=position_dodge(),stat="identity") +
+  geom_errorbar(aes(ymin=Area-ci,
+                    ymax=Area+ci),width=.2,position=position_dodge(.9)) +
+  labs(title="95% CI")
+
+```
+
+**b.	As a boxplot**
+```{r}
+ci.box <- as.data.frame(cbind(ci95.trt1,ci99.trt1,ci95.trt2,ci99.trt2))
+
+boxplot(ci.box)
+
+```
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
