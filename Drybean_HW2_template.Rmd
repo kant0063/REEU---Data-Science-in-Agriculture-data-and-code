@@ -1,0 +1,144 @@
+---
+title: "Drybeans_HW2"
+output: pdf_document
+---
+
+# Name - HW2 -REU
+
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(readr)
+library(maptools)
+library(ggplot2)
+library(raster)
+library(psych)
+library(gmodels)
+library(FactoMineR) #library for conducting PCA
+library(factoextra) # library for plotting PCA
+library(missMDA) #for imputing if you have missing data
+library(Rmisc)
+
+```
+
+## 1.	Import the data
+```{r}
+df <- read.csv("Dry_Bean_Dataset.csv")
+head(df)
+str(df)
+
+```
+
+## 2. Conduct a principle component analysis:
+```{r}
+#remove the grouping data from the dataframe
+df2 <- df[, -1]
+
+# Pricipal Components Analysis
+# entering raw data and extracting PCs 
+# from the correlation matrix 
+scaled_data<-scale(df2) #make the entire dataset on the same scale
+fit <- prcomp(scaled_data, scale=TRUE) #conduct the PCA
+summary(fit) # print variance accounted for
+plot(fit, type="lines") # scree plot
+biplot(fit) #look at vairable composisiton
+```
+
+##3. Make plots of the PCA
+```{r}
+
+#extract first two principle components and place in another object for ploting
+comp <- data.frame(fit$x[,1:2])
+comp$type<-df$Class
+
+#plot PC1 x PC2 colored by bean type
+plot(comp$PC1, comp$PC2, col=as.factor(comp$type), pch=19) # it would be advisable to color this by some factor
+
+#Make Legend
+legend("bottomright", title="Bean Types",
+  legend=c("SEKER", "BARBUNYA","BOMBAY","CALI","HOROZ","SIRA","DERMASON"), 
+   col=as.factor(comp$type),cex=0.75,  pch=19)
+
+# make plot of PC1 x PC2 x PC3
+comp <- data.frame(fit$x[,1:3])
+comp$type<-df$Class
+plot(comp, col=as.factor(comp$type),pch=19)
+
+# make plot of PC1 x PC2 x PC3 x PC4 x PC5
+comp <- data.frame(fit$x[,1:5])
+comp$type<-df$Class
+plot(comp, col=as.factor(comp$type),pch=19)
+
+
+```
+
+**4.	Make the plot with ggplot2**	
+```{r}
+
+str(comp)
+comp$type<-as.factor(comp$type)
+find_hull <- function(comp) comp[chull(comp$PC1, comp$PC2), ] #find convex hulls
+hulls2 <- ddply(comp, "type", find_hull)
+
+#Clustering based on Three Groups makes a lot of sense
+ggplot(data = comp, aes(x = PC1, y = PC2, colour=type, fill = type)) +
+  geom_point() + 
+  geom_polygon(data = hulls2, alpha = 0.5) +
+  labs(x = "PC1", y = "PC2") +
+  theme_bw()
+
+```
+
+**5. Use automated packages to create hieracical clusterin of Principle components**
+```{r}
+
+
+#conduct the Principle component analysis
+result <- PCA(df2, scale.unit=TRUE, ncp=5, graph=T)
+#make a plot of first two PC axics
+plot.PCA(result, axes=c(1, 2), choix="ind")
+#description of PC 
+dimdesc(result)
+
+#cluster the individuals by principle component scores
+res.hpc2 <- HCPC(result, graph =FALSE)
+#what is in the HCPC object
+
+#data.clust: The original data with a supplementary column called class containing the partition.
+#desc.var: The variables describing clusters
+#desc.ind: The more typical individuals of each cluster
+#desc.axes: The axes describing clusters
+#res.hcpc$desc.var$quanti, display quantitative variables that describe the most each cluster
+
+#graph  cluster denogram
+fviz_dend(res.hpc2, 
+          cex = 0.7,                     # Label size
+          palette = "jco",               # Color palette see ?ggpubr::ggpar
+          rect = TRUE, rect_fill = TRUE, # Add rectangle around groups
+          rect_border = "jco",           # Rectangle color
+          labels_track_height = 0.8      # Augment the room for labels
+)
+#great convex hulls
+fviz_cluster(res.hpc2,
+             repel = T,            # Avoid label overlapping
+             geom= "point", #plot only points
+             show.clust.cent = TRUE, # Show cluster centers
+             palette = "jco",         # Color palette see ?ggpubr::ggpar
+             ggtheme = theme_minimal(),
+             main = "Factor map"
+)
+#get variables
+get_variables <- HCPC(result)
+pca_data <- get_variables$desc.var
+#description of PC axis
+res.hpc2$desc.axes
+#description of clusters
+res.hpc2$desc.ind
+
+
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
