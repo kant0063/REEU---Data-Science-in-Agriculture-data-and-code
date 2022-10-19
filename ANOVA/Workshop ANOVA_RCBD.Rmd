@@ -1,0 +1,68 @@
+---
+title: "HW03 template"
+output:
+  word_document: default
+  pdf_document: default
+  
+  ### Name
+---
+
+```{r setup, include=FALSE}
+
+library(car)
+library(agricolae)
+library(DunnettTests)
+library(multcomp)
+
+```
+
+**Problem**
+Field trials are central to agricultural reserach. We have provided two datasets using a standeard field design, Randomized Complete Block, for you to explore.  
+
+**a.	State the null and alternative hypotheses for the experiment.**
+**Answer:** 
+Null Hypothesis: 
+Alternative Hypothesis: 
+
+**b. Write the linear model and define the components of the model.**
+**recal this is the abstraction of the design**
+**Answer:** 
+
+
+
+**c.	Conduct an Analysis of Variance (ANOVA) for for two of the response variables**
+```{r}
+dat<- read.csv('') #read in data
+head(dat)
+str(dat)
+```
+
+**d.	Write out the table**
+```{r}
+aov.dat <- aov()
+summary(aov.dat)
+```
+
+
+**e. Construct a table of treatment means using an appropriate mean separation procedure of your choice.**
+
+```{r}
+
+lsd.dat <- LSD.test() # or HSD or dunnett
+bar.group()
+title(cex.main=0.8,main="Impact of Planting date Yield",xlab="Planting Date",ylab="Yield")
+
+```
+
+**f.	Write a brief summary of the results and discuss conclusions you could draw from the data set.**
+**Answer:** 
+
+
+
+
+
+
+
+
+## R Markdown
+
