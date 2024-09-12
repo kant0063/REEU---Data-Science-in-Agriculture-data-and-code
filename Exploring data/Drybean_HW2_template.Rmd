@@ -1,5 +1,5 @@
 ---
-title: "Drybeans_HW2"
+title: "Drybeans Exploration"
 output: pdf_document
 ---
 
