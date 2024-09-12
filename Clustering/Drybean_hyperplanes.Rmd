@@ -1,5 +1,5 @@
 ---
-title: "Drybeans_HW3"
+title: "Drybeans Hyperplanes"
 output: pdf_document
 ---
 
