@@ -26,9 +26,9 @@ So we can think of multivariate observations as points in multidimensional space
     7) Create plots of different variables
     8) Play with plot parameters (color, shapes, etc)
 ## Activity 2: Use the package hypervolume 
-    1) Download R markdown (Lesson 5b) for data exploration
+    1) Download R markdown *Drybean_hyperplanes.Rmd*
     2) Using the hypervolume package conduct an SVM analysis
     3) After working together walk through the code and try to understand what each portion is doing
 # Independent Practice 
-*Annotate your own code so that in your own words you know what each command is doing.*
-    **Output:**  R-markdown document for initial SVM
+1) *Annotate your own code so that in your own words you know what each command is doing.*
+2) **Output:**  R-markdown document for initial SVM
