@@ -16,7 +16,7 @@ Students will….
     2. How can you see patterns in data?
 # Direct instruction and guided practice
 ## Activity 1: Principal component analysis K-means clustering
-    1. Download R markdown (Lesson 5b) for dimension reduction
+    1. Download R markdown for clustering
     2. Visually explore the data
     3. Conduct the PCA
     4. Graph the different PCs
@@ -25,7 +25,7 @@ Students will….
     7. Graph the output in at least two different ways
 
 ## Activity 2: Nearest neighbor
-    1. Download R markdown (Lesson 5c) for nearest neighbor
+    1. Download R markdown for nearest neighbor
     2. Now explore nearest neighbors
     3. Try it with the PCA output
 
