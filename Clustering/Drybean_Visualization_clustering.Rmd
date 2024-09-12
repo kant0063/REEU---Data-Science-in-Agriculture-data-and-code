@@ -23,7 +23,7 @@ library(Rmisc)
 
 ## 1.	Import the data
 ```{r}
-df <- read.csv("G:/My Drive/Teaching Experimental design/markdown for experimental design 2021/markdown_for_drybean/DryBeanDataset/Dry_Bean_Dataset.csv")
+df <- read.csv("Dry_Bean_Dataset.csv")
 head(df)
 str(df)
 
