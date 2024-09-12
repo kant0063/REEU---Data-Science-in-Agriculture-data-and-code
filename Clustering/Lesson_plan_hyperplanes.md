@@ -31,4 +31,4 @@ So we can think of multivariate observations as points in multidimensional space
     3) After working together walk through the code and try to understand what each portion is doing
 # Independent Practice 
 *Annotate your own code so that in your own words you know what each command is doing.* 
-**Output:**  R-markdown document for initial SVM
+    **Output:**  R-markdown document for initial SVM
