@@ -9,7 +9,7 @@ Students will….
 # Materials Needed for Lesson
         ◦ Laptop
         ◦ Data files - Dry_Bean_Dataset.csv and all_years_roots_final.csv
-        ◦ R-markdown templates - Drybean_Nearest_neighbor.rmd and Drybean_Hyperplanes.Rmd
+        ◦ R-markdown templates - Drybean_Nearest_neighbor.rmd, Drybean_Visualization_clustering.rmd and Drybean_Hyperplanes.Rmd
 **Anticipatory Set up time (5 min)**
 # Gauge how comfortable students are with the material with a series of warm-up questions, for example:
     1. How do you know if samples are related?
