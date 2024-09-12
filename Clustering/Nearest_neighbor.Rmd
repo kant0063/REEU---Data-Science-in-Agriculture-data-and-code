@@ -1,5 +1,5 @@
 ---
-title: "Drybeans_HW2.5"
+title: "Drybeans Nearest Neighbor"
 output: pdf_document
 ---
 
