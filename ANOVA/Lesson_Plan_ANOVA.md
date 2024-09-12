@@ -13,13 +13,14 @@ Students will….
 # Gauge how comfortable students are with the material with a series of warm-up questions, for example:
     1. What is a distribution?
     2. What is a mean?
-**Direct instruction and guided practice**
+# Direct instruction and guided practice
 ## Activity 1: Comparing genotypes (10 min)
         a. Students will first attend the lecture on ANOVA
         b. Download a dataset of interest:
-*U’ala (9a)*
-*Kalo (9b)*
+*U’ala (9a) - a randomized complete block design*
+*Kalo (9b) - a randomized complete block design*
         c. Download the R markdown
+*Workshop ANOVOA_RCBD.md*
         d. What is a trait?
         e. What is variation?
         f. How many ways can you measure variation?
