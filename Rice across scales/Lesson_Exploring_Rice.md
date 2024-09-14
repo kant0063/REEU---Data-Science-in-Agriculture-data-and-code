@@ -26,13 +26,13 @@
 
 ## Student Activity 3: Combine spatial and temporal data
 1) How is time and space combined to change yield?
-2) What factors have influenced yield (abiotic, biotic, socioeconomic)?
+2) What factors have influenced yield (abiotic, biotic, socioeconomic)?\
    **Anticipatory Set up time (5 min)**
 
 # Gauge how comfortable students are with the material with a series of warm-up questions, for example:
 1) What impacts crop yield?
 2)  What factors impact yield in different geographies?
-3)   What factors impact yield in different times?
+3)   What factors impact yield in different times?\
 *Use example pictures, Rice terraces, dryland rice, Internaional Rice Research Institute (IRRI)*
 # Direct instruction and guided practice
 ## Activity 1: Describe Rice yield maps
