@@ -36,15 +36,15 @@
 *Use example pictures, Rice terraces, dryland rice, Internaional Rice Research Institute (IRRI)*
 # Direct instruction and guided practice
 ## Activity 1: Describe Rice yield maps
-1) Divide students into 3-5 groups and pass out maps of different countries
-  a) What factors impact yield in the different countries? 
-  b) What is the cropping calendar?
+1) Divide students into 3-5 groups and pass out maps of different countries\
+  a) What factors impact yield in the different countries? \
+  b) What is the cropping calendar?\
   c) What are the important biological factors that can impact yield?
 ## Activity 2: Create time series graphs of yield
-1) In the same 3-5 groups and hand out datasets for different countries
-  a) Have groups load data into R
-  b) Create time series graphs of yield
-  c) Create a trendline
+1) In the same 3-5 groups and hand out datasets for different countries\
+  a) Have groups load data into R\
+  b) Create time series graphs of yield\
+  c) Create a trendline\
   d) What could have caused variation around the trendline?
 ## Activity 3: Combine spatial and temporal data
 1) After each group reports, have student explore the space and time data together
