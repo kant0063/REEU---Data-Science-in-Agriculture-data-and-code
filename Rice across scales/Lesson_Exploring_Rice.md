@@ -15,16 +15,16 @@
 6) Cropping Calendar
 7) Laptop
 **Student Activity 1: Describe Rice Yield Maps**
-        ◦ What does a rice plant look like?
-        ◦ How is rice grown?
-        ◦ What climate factors impact rice growth?
-        ◦ What is the difference between region, country, and provincial data?
+1) What does a rice plant look like?
+2) How is rice grown?
+3) What climate factors impact rice growth?
+4) What is the difference between region, country, and provincial data?
 **Student Activity 2: Create time series of yield graphs**
-        ◦ How has yield changed overtime?
-        ◦ How has yield changed in different geographies? 
+1) How has yield changed overtime?
+2) How has yield changed in different geographies? 
 **Student Activity 3: Combine spatial and temporal data**
-        ◦ How is time and space combined to change yield?
-        ◦ What factors have influenced yield (abiotic, biotic, socioeconomic)? 
+1) How is time and space combined to change yield?
+2) What factors have influenced yield (abiotic, biotic, socioeconomic)? 
 **Anticipatory Set up time (5 min)**
 # Gauge how comfortable students are with the material with a series of warm-up questions, for example:
 1) What impacts crop yield?
