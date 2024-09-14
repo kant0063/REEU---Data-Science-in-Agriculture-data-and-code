@@ -1,0 +1,90 @@
+---
+title: "Drybeans Nearest Neighbor"
+output: pdf_document
+---
+
+# Name - HW3 -REU
+
+
+```{r setup, include=FALSE}
+library(readr)
+library(maptools)
+library(ggplot2)
+library(raster)
+library(psych)
+library(gmodels)
+library(FactoMineR) #library for conducting PCA
+library(factoextra) # library for plotting PCA
+library(missMDA) #for imputing if you have missing data
+library(hyperoverlap)
+library(Rmisc)
+library(car)
+library(dplyr)
+library(ggplot2)
+library(MuMIn)
+library(drc)
+library(class)
+
+```
+
+## 1.	Import the data
+```{r}
+df <- read.csv("Dry_Bean_Dataset.csv")
+head(df)
+str(df)
+summary(df)
+df$Class=as.factor(df$Class)
+
+```
+
+## 2. Explore nearest neighbors:
+```{r}
+
+##Generate a random number that is 90% of the total number of rows in dataset.
+ ran <- sample(1:nrow(df), 0.9 * nrow(df))
+
+
+##Run nomalization on first 4 coulumns of dataset because they are the predictors
+df_norm <- scale(df[,2:17])
+ 
+summary(df_norm)
+
+##extract training set
+df_train <- df_norm[ran,] 
+
+##extract testing set
+ df_test <- df_norm[-ran,] 
+
+ ##extract 5th column of train dataset because it will be used as 'cl' argument in knn function.
+ df_target_category <- df[ran,1]
+
+ ##extract 5th column if test dataset to measure the accuracy
+ df_test_category <- df[-ran,1]
+
+ 
+  ##run knn function
+ pr <- knn(df_train,df_test,cl=df_target_category,k=10)
+ 
+ ##create confusion matrix
+ tab <- table(pr,df_test_category)
+ 
+ ##this function divides the correct predictions by total number of predictions that tell us how accurate the model is.
+ 
+ accuracy <- function(x){sum(diag(x)/(sum(rowSums(x)))) * 100}
+ accuracy(tab)
+
+ 
+
+
+```
+**3.	Now try it with the PCA output**	
+```{r}
+
+
+```
+
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
