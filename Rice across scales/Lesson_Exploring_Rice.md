@@ -14,15 +14,15 @@
 5) Botanical illustrations of rice
 6) Cropping Calendar
 7) Laptop
-**Student Activity 1: Describe Rice Yield Maps**
+## Student Activity 1: Describe Rice Yield Maps
 1) What does a rice plant look like?
 2) How is rice grown?
 3) What climate factors impact rice growth?
 4) What is the difference between region, country, and provincial data?
-**Student Activity 2: Create time series of yield graphs**
+## Student Activity 2: Create time series of yield graphs
 1) How has yield changed overtime?
 2) How has yield changed in different geographies? 
-**Student Activity 3: Combine spatial and temporal data**
+## Student Activity 3: Combine spatial and temporal data
 1) How is time and space combined to change yield?
 2) What factors have influenced yield (abiotic, biotic, socioeconomic)? 
 **Anticipatory Set up time (5 min)**
