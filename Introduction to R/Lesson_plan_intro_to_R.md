@@ -21,14 +21,14 @@ This software is a free statistical software that is a common tool for biologica
     1) What is the command line?
     2) What is scripting?
     3) Why are computers useful?
-    4) What are variables?
+    4) What are variables?   
 *Introduce the concept of data and data visualization* 
 
 # Direct instruction and guided practice
 ## Activity 1: Download R and R studio
 1) Divide students into 4 groups
 2) Give the links to the key websites to download software
-3) 3) Give the links to data  
+3) Give the links to data  
         a) Walk students through installing and loading a library  
         b) Introduce R-markdown  
         c) Introduce commenting code  
@@ -38,7 +38,7 @@ This software is a free statistical software that is a common tool for biologica
 1) Give the students a new dataset
 2) Allow students time to create a new graphic
 3) Have students share their graphic and describe it
-4) Discuss questions about data? 
+4) Discuss questions about data?       
         a) What is data?   
         b) How do figures represent data?  
         c) How can figures represent specific ideas?  
