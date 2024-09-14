@@ -26,8 +26,8 @@
 
 ## Student Activity 3: Combine spatial and temporal data
 1) How is time and space combined to change yield?
-2) What factors have influenced yield (abiotic, biotic, socioeconomic)? 
-  **Anticipatory Set up time (5 min)**
+2) What factors have influenced yield (abiotic, biotic, socioeconomic)?
+   **Anticipatory Set up time (5 min)**
 
 # Gauge how comfortable students are with the material with a series of warm-up questions, for example:
 1) What impacts crop yield?
@@ -35,22 +35,22 @@
 3)   What factors impact yield in different times?
 *Use example pictures, Rice terraces, dryland rice, Internaional Rice Research Institute (IRRI)*
 # Direct instruction and guided practice
-**Activity 1: Describe Rice yield maps**
+## Activity 1: Describe Rice yield maps
 1) Divide students into 3-5 groups and pass out maps of different countries
   a) What factors impact yield in the different countries? 
   b) What is the cropping calendar?
   c) What are the important biological factors that can impact yield?
-**Activity 2: Create time series graphs of yield**
+## Activity 2: Create time series graphs of yield
 1) In the same 3-5 groups and hand out datasets for different countries
   a) Have groups load data into R
   b) Create time series graphs of yield
   c) Create a trendline
   d) What could have caused variation around the trendline?
-**Activity 3: Combine spatial and temporal data**
+## Activity 3: Combine spatial and temporal data
 1) After each group reports, have student explore the space and time data together
-2)  Ask students to explore major disease epidemics in the countries they have been assigned?
+2) Ask students to explore major disease epidemics in the countries they have been assigned?
 3) Ask students to explore major policy interventions in the countries they have been assigned?
-4)  What might change these trends in the future?
+4) What might change these trends in the future?
 
 # Independent Practice 
 **Homework Assignment:** Write a three-paragraph essay on rice agroecosystem sustainability given the spatiotemporal data explored. 
