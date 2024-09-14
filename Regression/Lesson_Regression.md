@@ -39,5 +39,5 @@ what future observations will look like.**
 
 # Independent Practice 
 
-**Try your new code on a new dataset**
-Output:  R-markdown for regression annotated in **
+**Try your new code on a new dataset**   
+**Output:**  annotated R-markdown for regression
