@@ -1,5 +1,5 @@
 # Lesson Plan: Understanding Rice Yield across scale (Getting acquainted with R)
-**Rationale:** *Rice is one of the most important crops across the world. When we look at the spatial and temporal changes in rice production. When exploring data across scale, it is possible to pick up signals of biological phenomenon. Using the spatiotemporal data students will identify signals of disease, climate, and abiotic stress. 
+**Rationale:** *Rice is one of the most important crops across the world. When we look at the spatial and temporal changes in rice production. When exploring data across scale, it is possible to pick up signals of biological phenomenon. Using the spatiotemporal data students will identify signals of disease, climate, and abiotic stress.* 
 
 # Student Learning Objectives 
 1) Understand how food production has changed over time
@@ -7,22 +7,22 @@
 3) Explore signals of disease epidemics and abiotic stress
 4) Explore signals of socio ecological impacts
 # Materials Needed for Lesson
-    • Lecture
-    • Data
-    • R markdown
-    • Maps
-    • Botanical illustrations of rice
-    • Cropping Calendar
-    • Laptop
-    • **Student Activity 1: Describe Rice Yield Maps**
+1) Lecture
+2) Data file - Rice_yield_FAO.xlsx
+3) R markdown file - Workshop 3 Rice_Data.Rmd
+4) Maps
+5) Botanical illustrations of rice
+6) Cropping Calendar
+7) Laptop
+**Student Activity 1: Describe Rice Yield Maps**
         ◦ What does a rice plant look like?
         ◦ How is rice grown?
         ◦ What climate factors impact rice growth?
         ◦ What is the difference between region, country, and provincial data?
-    • **Student Activity 2: Create time series of yield graphs**
+**Student Activity 2: Create time series of yield graphs**
         ◦ How has yield changed overtime?
         ◦ How has yield changed in different geographies? 
-    • **Student Activity 3: Combine spatial and temporal data**
+**Student Activity 3: Combine spatial and temporal data**
         ◦ How is time and space combined to change yield?
         ◦ What factors have influenced yield (abiotic, biotic, socioeconomic)? 
 **Anticipatory Set up time (5 min)**
