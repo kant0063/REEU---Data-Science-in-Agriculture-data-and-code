@@ -3,7 +3,7 @@
 Regression is a technique that is used to both understand relationships between variables and to be able to predict 
 what future observations will look like.**  
 # Student Learning Objectives 
-*Students will….*\ 
+*Students will…*
 1) Understand the mechanics of creating a regression model
 2) Understand how to visualize a regression model
 
