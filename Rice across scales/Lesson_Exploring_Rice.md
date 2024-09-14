@@ -19,13 +19,16 @@
 2) How is rice grown?
 3) What climate factors impact rice growth?
 4) What is the difference between region, country, and provincial data?
+
 ## Student Activity 2: Create time series of yield graphs
 1) How has yield changed overtime?
 2) How has yield changed in different geographies? 
+
 ## Student Activity 3: Combine spatial and temporal data
 1) How is time and space combined to change yield?
 2) What factors have influenced yield (abiotic, biotic, socioeconomic)? 
-**Anticipatory Set up time (5 min)**
+  **Anticipatory Set up time (5 min)**
+
 # Gauge how comfortable students are with the material with a series of warm-up questions, for example:
 1) What impacts crop yield?
 2)  What factors impact yield in different geographies?
