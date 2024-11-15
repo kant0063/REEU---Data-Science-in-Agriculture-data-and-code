@@ -314,7 +314,7 @@ ggsave(filename = "raincloud_fig3_2023_all.png", plot = raincloud_plot_growth_ra
 growth_l4 <- read.csv("/Users/mayalmp/Desktop/REEU/all_years_growth_rate_L4_final.csv")
 
 # Capitalize everything in the Season_year column
-growth_l4$Season_year <- toupper(growth_l4$Season_year)
+#growth_l4$Season_year <- toupper(growth_l4$Season_year)
 
 # Combine Season and Year into a single column for faceting purposes
 growth_l4$Season_year <- paste(growth_l4$Season, growth_l4$Year, sep = "_")
@@ -381,8 +381,42 @@ raincloud_plot_fig_roottips <- genotype_b73 %>%
 ggsave(filename = "raincloud_fig4.png", plot = raincloud_plot_fig_roottips, width = 30, height = 15, units = "cm", dpi = 450)
 ```
 
+## Data Normalization
+
+### Objective
+Normalize the data to the B73 control to account for large variation across `Season_year`.
+
+### Steps
+1. **Identify**: Use B73 control samples as the baseline.
+2. **Normalize**: Adjust other samples relative to the B73 control across `Season_year`.
+3. **Interpret**: Evaluate normalized values to reduce seasonal variation effects.
+
+```{r}
+# Load necessary library
+library(dplyr)
+
+# Normalize the dataset by centering numeric columns around the mean of the control group (B73)
+test1d <- growth_rate_all %>%
+  
+  # Group the data by 'Season' and 'Year' to perform calculations within these subsets
+  group_by(Season, Year) %>%
+  
+  # Create new normalized columns by adjusting numeric values relative to the B73 control mean
+  mutate(
+    across(
+      where(is.numeric),  # Apply normalization to all numeric columns
+      ~ . - mean(.x[Genotype_ID == 'B73'], na.rm = TRUE),  # Subtract mean of B73 control
+      .names = "norm_{.col}"  # Prefix new normalized columns with "norm_"
+    )
+  ) %>%
+  
+  # Remove grouping structure to finalize the dataset
+  ungroup()
+```
+
+
 *Statistical analyses of experimental error and variation*
-# DATA SET 1 -> B73 
+# A) Data set 1 -> B73 
 # Technical Validation cont. : Assessment of experimental error and variation (nested random effects model) for growth_rate_all dataset
 # ICC
 Groups      Name        Std.Dev.
@@ -390,31 +424,33 @@ Groups      Name        Std.Dev.
  Residual                 6.3088 
 # Interpretation: Variance explained by season_year vs random variation for a single genotype under control condition
 ## Filter B73 Control trail 1 
-## Percent variance of Season_year: 68.72 %
-## Percent variance of residual (unexplained): 31.28 % 
+## Percent variance of Season_year:  %
+## Percent variance of residual (unexplained):  % 
 ## Model: B73_m1 <- lmer(growth_L4 ~ 1 + (1 | Season_year)
 ```{r}
 # Load necessary libraries
 library(lme4)          # For linear mixed-effects models
 library(lmerTest)      # For significance testing in mixed models
 
-growth_rate_all<-subset(growth_rate_all, Leaf!="five")
+# , Leaf!="five"
 # Display unique leaf types in the dataset
 unique(growth_rate_all$Leaf)
 
 # Step 1: Subset the data to include only the control group for genotype B73 with leaf type "four"
+
 b73_control <- subset(growth_rate_all, 
                       Genotype_ID == "B73" & 
-                      Treatment == "Control" & 
-                      Leaf == "four")  # Filter specifically for B73 Control with Leaf "four"
+                      Treatment == "Control" &
+                        Leaf == "four")  # Filter specifically for B73 Control with Leaf "four"
+# Create a new column combining Season and Year for grouping purposes
+b73_control$Season_year <- paste(b73_control$Season, b73_control$Year, sep = "_")
 
 # Display unique values for verification
 unique(b73_control$Genotype_ID)  # Verify Genotype_ID
 unique(b73_control$Treatment)    # Verify Treatment
 unique(b73_control$Leaf)         # Verify Leaf type
 
-# Create a new column combining Season and Year for grouping purposes
-b73_control$Season_year <- paste(b73_control$Season, b73_control$Year, sep = "_")
+table(b73_control$Season_year)
 
 # Display column names to confirm structure
 colnames(b73_control)
@@ -454,8 +490,83 @@ p1 <- b73_control %>%
 # Display the plot
 p1
 ```
+*Statistical analyses of experimental error and variation*
+# A) Data set 1 Normalized -> B73 
+# Technical Validation cont. : Assessment of experimental error and variation (nested random effects model) for test1d dataset
+# ICC
+Groups      Name        Std.Dev.
+ Season_year (Intercept) 11.0056 
+ Residual                 6.3088 
+# Interpretation: Variance explained by season_year vs random variation for a single genotype under control condition
+## Filter B73 Control trail 1 
+## Percent variance of Season_year: 
+## Percent variance of residual (unexplained): 
+## Model: B73_m1 <- lmer(growth_L4 ~ 1 + (1 | Season_year)
+```{r}
+# Load necessary libraries
+library(lme4)          # For linear mixed-effects models
+library(lmerTest)      # For significance testing in mixed models
 
-Data set 2
+# , Leaf!="five"
+# Display unique leaf types in the dataset
+unique(test1d$Leaf)
+
+# Step 1: Subset the data to include only the control group for genotype B73 with leaf type "four"
+b73_control_norm <- subset(test1d, 
+                      Genotype_ID == "B73" & 
+                      Treatment == "Control" & Leaf=="four")  # Filter specifically for B73 Control with Leaf "four"
+
+# Display unique values for verification
+unique(b73_control_norm$Genotype_ID)  # Verify Genotype_ID
+unique(b73_control_norm$Treatment)    # Verify Treatment
+unique(b73_control_norm$Leaf)         # Verify Leaf type
+
+# Create a new column combining Season and Year for grouping purposes
+b73_control_norm$Season_year <- paste(b73_control_norm$Season, b73_control_norm$Year, sep = "_")
+
+# Display column names to confirm structure
+colnames(b73_control_norm)
+
+table(b73_control_norm$Season_year)
+
+# Step 2: Fit the linear mixed-effects model
+B73_m1n <- lmer(norm_GrowthRate ~ 1 + (1 | Season_year), data = b73_control_norm)
+
+# Check significance of random effects
+rand(B73_m1n)  # Note: 'rand()' function might need definition if not available in lmerTest
+
+# Display model summary and ANOVA results for B73 model
+summary(B73_m1n)
+anova(B73_m1n)
+
+# Step 3: Calculate Intraclass Correlation Coefficient (ICC)
+cov1n <- VarCorr(B73_m1n)   # Extract covariance of Season_year from the model
+cov1n                      # View covariance components
+
+s2u1n <- as.numeric(cov1n$`Season_year`)  # Extract variance of Season_year
+s2e1n <- sigma(B73_m1n)^2                 # Calculate residual variance
+
+# Calculate percentage of variance explained by Season_year (ICC)
+variance_season_year_normalized <- s2u1n / (s2u1n + s2e1n) * 100  # Approx. 37.49% variance explained by Season_year
+
+# Calculate the percentage of variance attributed to residuals
+percent_variance_residual_normalized <- (s2e1n / (s2u1n + s2e1n)) * 100
+
+variance_season_year_normalized+ percent_variance_residual_normalized
+
+# # Step 4: Visualize Residuals
+# residual_control <- resid(B73_m1n)   # Extract residuals from the model
+# qqnorm(residual_controln)            # Q-Q plot to check normality of residuals
+# 
+# # Step 5: Create a boxplot to visualize growth rate by Season and Year
+# p1 <- b73_control %>% 
+#   ggplot(aes(x = Season_year, y = norm_GrowthRate, fill = Season_year)) +
+#   geom_boxplot()                    # Generate boxplot for growth rate by Season_year
+# 
+# # Display the plot
+# p1
+```
+B) Data set 2  
 ## Data Filtering for Control Condition
 - **Excluded Genotypes**: B73, HP301, NC350, OH7b, Ki11  
 
@@ -469,6 +580,7 @@ Data set 2
 
 ## Interpretation
 The ICC analysis provides the variance explained by **Season_year**, **Genotype within Season_year**, and **random variation** under the control condition.
+# Spring 2024 is filtered out 
 
 ```{r}
 # Load necessary libraries
@@ -477,7 +589,8 @@ library(lmerTest)
 
 # Step 1: Subset to control
 control_allyears <- subset(growth_rate_all, Treatment == "Control" & Leaf == "four")
-
+colnames(control_allyears)
+unique(control_allyears$Genotype_ID)
 # Subset for specific genotype IDs
 control_allyearsID <- subset(control_allyears, 
                              Genotype_ID == c("B97", "CML322", "CML52", "CML69", 
@@ -485,10 +598,14 @@ control_allyearsID <- subset(control_allyears,
                                               "CML103", "CML228", "Ky21", 
                                               "M37w", "Ms71", "Tx303", 
                                               "NC358", "Oh43", "Tzi8", 
-                                              "CML333", "M162W"))
-
+                                              "CML333", "M162W","IL14H"))
+table(control_allyearsID$Genotype_ID,control_allyearsID$Season_year)
 # Check unique Genotype IDs
 unique(control_allyearsID$Genotype_ID)
+
+unique(control_allyearsID$Season_year)
+
+unique(control_allyearsID$Leaf)
 
 # Create a new column combining Season and Year
 control_allyearsID$control_allyearsID <- paste(control_allyearsID$Season, control_allyearsID$Year, sep = "_")
@@ -507,31 +624,102 @@ Con_all_years_lm <- lmer(GrowthRate ~ 1 + (1 | Season_year / Genotype_ID), data 
 summary(Con_all_years_lm)
 
 # Extract the variance from the model
-v1_con_all <- VarCorr(Con_all_years_lm)
+residual_varianceB <- VarCorr(Con_all_years_lm)
 
 # Variance for nested model Season_year:Genotype_ID
-nested_var <- as.numeric(v1_con_all$`Genotype_ID:Season_year`)
+season_genotypeB <- as.numeric(residual_varianceB$`Genotype_ID:Season_year`)
+
+season_yrB <- as.numeric(residual_varianceB$`Season_year`)
+
 # Calculate residual variance
-res_control_var <- sigma(Con_all_years_lm)^2  # Residual variance 
+residual_varianceBb<- sigma(Con_all_years_lm)^2  # Residual variance 
 
 # Calculate ICC for nested variables
-ICC_control1 <- nested_var / (nested_var + res_control_var)  # # Proportion of variance explained by treatment: genotype  
-ICC_residual <- res_control_var / (nested_var + res_control_var)  # Proportion of variance explained by treatment: genotype  
-
+nested_varianceB <- season_genotypeB / (season_genotypeB + residual_varianceBb + season_yrB)  # # Proportion of variance explained by Genotype_ID: Season_Yr  
+residual_varB <- residual_varianceBb / (season_genotypeB + residual_varianceBb + season_yrB)  # Proportion of unexplained variance
+season_yr_B <- season_yrB / (season_genotypeB + residual_varianceBb + season_yrB) # Proportion of variance explained by season yr 
 # Sum of ICC components
-ICC_control1 + ICC_residual
+nested_varianceB*100 + residual_varB*100 + season_yr_B*100
+
+# Can pool data to minimize year effect -- found when we comapred normalized to unnormalized 
 ```
-DOES NOT WORK 
-##Third Dataset Sing: Control and Genotype by Year - **Is Singular** 
+B) Data set 2 Normalized 
+## Data Filtering for Control Condition
+- **Excluded Genotypes**: B73, HP301, NC350, OH7b, Ki11  
 
-### Filtering Criteria
-- **Condition**: Control
-- **Seasons**: Summer 2021, Summer 2022, Fall 2022, Spring 2024, Summer 2024
-- **Genotypes**: B73, HP301, NC350, OH7b, Ki11
+## Model Specification
+- **Model Name**: `Control_m2`
+- **Model Structure**: `growth_L4 ~ 1 + (1 | Season_year/Genotype)`
 
-### Model Specification
-- **Tentative Model**: `Control_crossed_m3 <- lmer(growth_L4 ~ 1 + (1 | Season_year) + (1 | Genotype))`
+## Intraclass Correlation Coefficient (ICC) Analysis
+- **Percent Variance of Genotype within Season_year** %
+- **Percent Variance of Residual**  %
 
+## Interpretation
+The ICC analysis provides the variance explained by **Season_year**, **Genotype within Season_year**, and **random variation** under the control condition.
+
+```{r}
+# Load necessary libraries
+library(lme4)
+library(lmerTest)
+
+# Step 1: Subset to control
+control_allyears_norm <- subset(test1d, Treatment == "Control" & Leaf == "four")
+
+# Subset for specific genotype IDs
+control_allyearsIDn <- subset(control_allyears_norm, 
+                             Genotype_ID == c("B97", "CML322", "CML52", "CML69", 
+                                              "Mo18w", "CML 277", "CML247", 
+                                              "CML103", "CML228", "Ky21", 
+                                              "M37w", "Ms71", "Tx303", 
+                                              "NC358", "Oh43", "Tzi8", 
+                                              "CML333", "M162W","IL14H"))
+
+# Check unique Genotype IDs
+unique(control_allyearsIDn$Genotype_ID)
+
+table(control_allyearsIDn$Genotype_ID,control_allyearsIDn$Season_year)
+
+# Create a new column combining Season and Year
+control_allyearsIDn$control_allyearsIDn <- paste(control_allyearsIDn$Season, control_allyearsIDn$Year, sep = "_")
+
+# Filter out unwanted Genotype IDs (B73, HP301, NC350, OH7b, Ki11)
+unique(control_allyearsIDn$Treatment)
+unique(control_allyearsIDn$Leaf)
+
+# Residuals measure of how well the model fits the data
+control_allyearsIDn$Season_year <- paste(control_allyearsIDn$Season, control_allyearsIDn$Year, sep = "_")
+
+# Fit the linear mixed-effects model
+Con_all_years_lmn <- lmer(norm_GrowthRate ~ 1 + (1 | Season_year / Genotype_ID), data = control_allyearsIDn)
+
+# Model summary for ANOVA
+summary(Con_all_years_lmn)
+
+# Extract the variance from the model
+v1_con_alln <- VarCorr(Con_all_years_lmn)
+
+# Variance for nested model Season_year:Genotype_ID
+genotype_seasonyrB_normalized <- as.numeric(v1_con_alln$`Genotype_ID:Season_year`)
+
+season_yr_var_normalized <- as.numeric(v1_con_alln$`Season_year`)
+
+# Calculate residual variance
+residual_B_normalzied <- sigma(Con_all_years_lmn)^2  # Residual variance 
+
+# Calculate ICC for nested variables
+genotype_seasonyr_normalizedB <- genotype_seasonyrB_normalized / ( genotype_seasonyrB_normalized + season_yr_var_normalized + residual_B_normalzied)  # Proportion of variance explained by genotype within year
+
+residual_normalizedB <- residual_B_normalzied / (genotype_seasonyrB_normalized + season_yr_var_normalized + residual_B_normalzied) # # Proportion of variance explained by random student error  
+
+seasoon_yr_residualn <-  season_yr_var_normalized/ (genotype_seasonyrB_normalized + season_yr_var_normalized + residual_B_normalzied)  # Proportion of variance explained by seasonyear or cohort   
+
+# VARIANCE DECOMPOSITON -- LOOK IT UP 
+# Sum of ICC components
+genotype_seasonyr_normalizedB*100 + residual_normalizedB*100 + seasoon_yr_residualn*100
+```
+
+C) Data set 3 
 ### Intraclass Correlation Coefficient (ICC) Analysis
 1. **Percent Variance of Season_year**: 84.66%
 2. **Percent Variance of Genotype**: 0%
@@ -546,29 +734,34 @@ library(lmerTest)
 
 # Step 1: Subset to control 
 control_allyears <- subset(growth_rate_all, Treatment == "Control" & Leaf == "four")
+table(control_allyears$Season_year)
 
 # Create Season_Year column for nested random effects
 control_allyears$Season_year <- paste(control_allyears$Season, control_allyears$Year, sep = "_")
 
-# Further subset for specific seasons
-control_allyearsID3 <- subset(control_allyears, 
-                              Season_year == c("Summer_2021", "Summer_2022", 
-                                               "Fall_2022", "Spring_2024", 
-                                               "Summer_2024"))
+# Further subset for specific seasons 
+control_allyearsID3 <- subset(control_allyears,
+                              Season_year == c("Summer_2021","Summer_2022", "Fall_2022", "SPRING_2024")) # No summer 2024-- added in Spring_2023
+
+unique(control_allyearsID3$Genotype_ID)
 
 # Subset for specific genotype IDs
 control_allyearsthird <- subset(control_allyearsID3, 
                                 Genotype_ID == c("B73", "HP301", 
-                                                 "NC350", "OH7b", 
-                                                 "Ki11"))
+                                                 "NC350", "OH7B", 
+                                                 "ki11")) 
+
 
 # Recreate Season_Year column for this subset
 control_allyearsthird$Season_year <- paste(control_allyearsthird$Season, 
                                            control_allyearsthird$Year, 
                                            sep = "_")
 
-# Fit the linear mixed-effects model-- is singular 
-Con_all_years_lm_third_model <- lmer(GrowthRate ~ 1 + (1 | Season_year) + (1 | Genotype_ID), 
+table(control_allyearsthird$Season_year,control_allyearsthird$Genotype_ID)
+
+
+# Fit the linear mixed-effects model -- Season year is ~0
+Con_all_years_lm_third_model <- lmer(GrowthRate ~ 1 + (1 | Genotype_ID), 
                                      data = control_allyearsthird)
 
 # Model summary for ANOVA
@@ -578,221 +771,99 @@ summary(Con_all_years_lm_third_model)
 v1_con_all_third <- VarCorr(Con_all_years_lm_third_model)
 
 # Variance for Genotype_ID
-var_third <- as.numeric(v1_con_all_third$`Genotype_ID`)
+var_genotypeID_3 <- as.numeric(v1_con_all_third$`Genotype_ID`)
 
 # Variance for Season_year
-seasonyr_var_third <- as.numeric(v1_con_all_third$`Season_year`)
+#seasonyr_var_third <- as.numeric(v1_con_all_third$`Season_year`)
 
 # Calculate residual variance 
-res_control_var_third <- sigma(Con_all_years_lm_third_model)^2  # Residual variance 
+residual_all_data3 <- sigma(Con_all_years_lm_third_model)^2  # Residual variance 
 
 # Calculate ICC for Genotype_ID
-ICC_var_gen3 <- var_third / (var_third + seasonyr_var_third + res_control_var_third)  # ICC for Genotype_ID
+genotype_data3 <- var_genotypeID_3 / (var_genotypeID_3 + residual_all_data3)  # calculate variance for Genotype_ID 
 
 # Calculate ICC for Season_year
-ICC_control3 <- seasonyr_var_third / (var_third + seasonyr_var_third + res_control_var_third)  # ICC for Season 
+#ICC_control3 <- seasonyr_var_third / (var_genotypeID_3 + seasonyr_var_third + res_control_var_third)  # ICC for Season 
 
-# Calculate ICC for residuals
-ICC_residual3 <- res_control_var_third / (var_third + seasonyr_var_third + res_control_var_third)  # ICC for residuals  
+# Calculate for residuals
+residualdata_3 <- residual_all_data3 / (var_genotypeID_3 + residual_all_data3)  # calculate variance for residuals 
 
-# Sum of ICC components
-ICC_var_gen3 + ICC_control3 + ICC_residual3
+genotype_data3*100  + residualdata_3*100 #+ ICC_control3*100
 ```
 
-**NOTE**: Cannot nest with only one level. **Summer 2024** is unavailable for the 4th leaf, only the 5th leaf. This dataset cannot be run with this structure.
-
-X ## Fourth Dataset Singular: Drought Treatment by Year
-
-### Filtering Criteria
-- **Conditions**: Control and Drought
-- **Seasons**: Summer 2023, Summer 2024
-- **Genotypes**: B73, CML333, M162W, OH7b, NC350, HP301
-
-### Model Specification
-- **Challenge**: B73 is fully crossed with all levels, while other genotypes are nested within Season_Year.
-- **Tentative Model Idea**: `Drought_partiallycrossed_m4 <- lmer(growth_L4 ~ 1 + (1 | Treatment) + (1|Genotype_ID))`
-
+C) Data set 3 Normalized
 ### Intraclass Correlation Coefficient (ICC) Analysis
-1. **Percent Variance of Treatment**
-2. **Percent Variance of Season_year**
-3. **Percent Variance of Genotype within Season_year**
-
-```{r}
-# Load necessary libraries
-library(lme4)
-library(lmerTest)
-
-# Step 1: Subset to Control and Drought treatments
-control_drought <- subset(growth_rate_all, Treatment == c("Control", "Drought") & Leaf == "four")
-
-# Create Season_Year column for nested random effects
-control_drought$Season_year <- paste(control_drought$Season, control_drought$Year, sep = "_")
-
-# Further subset for specific seasons (Summer 2023 only for leaf four)
-control_drought_4a <- subset(control_drought, Season_year == "Summer_2023")
-
-# Subset for specific genotype IDs
-control_drought_4 <- subset(control_drought_4a, 
-                            Genotype_ID == c("B73", "HP301", 
-                                             "NC350", "OH7b", 
-                                             "CML333", "M162W"))
-
-# Create Season_Year column for this subset
-control_drought_4$Season_year <- paste(control_drought_4$Season, control_drought_4$Year, sep = "_")
-
-# Fit the linear mixed-effects model
-Con_all_years_lm_fourth_model <- lmer(GrowthRate ~ 1 + (1 | Treatment) + (1|Genotype_ID), 
-                                      data = control_drought_4)
-
-# Model summary for ANOVA
-summary(Con_all_years_lm_fourth_model)
-
-# Extract the variance from the model 
-v1_con_all_third <- VarCorr(Con_all_years_lm_fourth_model)
-
-# Variance for Genotype_ID
-var_third <- as.numeric(v1_con_all_third$`Treatment`)
-
-# Variance for nested model Season_year
-seasonyr_var_third <- as.numeric(v1_con_all_third$`Genotype_ID`)
-
-# Calculate residual variance 
-res_control_var_third <- sigma(Con_all_years_lm_fourth_model)^2  # Residual variance 
-
-# Calculate ICC for Genotype_ID
-ICC_var_gen3 <- var_third / (var_third + seasonyr_var_third + res_control_var_third)  # ICC for Genotype_ID
-
-# Calculate ICC for Season
-ICC_control3 <- seasonyr_var_third / (var_third + seasonyr_var_third + res_control_var_third)  # ICC for Season 
-
-# Calculate ICC for residuals
-ICC_residual3 <- res_control_var_third / (var_third + seasonyr_var_third + res_control_var_third)  # ICC for residuals  
-
-# Sum of ICC components
-ICC_var_gen3 + ICC_control3 + ICC_residual3
-
-```
-
-Data set three 
-## Model Specification
-- **Model Name**: `Drought_fullycrossed_m5`
-- **Formula**: `growth_L4 ~ 1 + (1 | Treatment) + (1 | Season_Year) + (1 | Genotype)`
-
-## Intraclass Correlation Coefficient (ICC) Analysis
-1. **Percent Variance of Treatment**
-2. **Percent Variance of Season_year**
-3. **Percent Variance of Genotype**
-4. **Percent Variance of Residual**
-
-## Interpretation
-The ICC analysis provides the variance explained by **Treatment**, **Season_year**, **Genotype**, and **random variation** under the control condition.
-
-```{r}
-# Load necessary libraries
-library(lme4)
-library(lmerTest)
-
-# Filter for Leaf "four" to exclude summer data
-growth_rate_all_l4 <- subset(growth_rate_all, Leaf == "four")
-
-# Create Season_year column for nested random effects
-growth_rate_all_l4$Season_year <- paste(growth_rate_all_l4$Season, growth_rate_all_l4$Year, sep = "_")
-
-# Fit the linear mixed-effects model
-growth_rate_all_lm <- lmer(GrowthRate ~ 1 + (1 | Treatment) + (1 | Season_year) + (1 | Genotype_ID), 
-                           data = growth_rate_all_l4)
-
-# Model summary for ANOVA
-summary(growth_rate_all_lm)
-
-# Check for any missing values in GrowthRate
-any(is.na(growth_rate_all_l4$GrowthRate))
-
-# Extract the variance from the model
-v1b_all <- VarCorr(growth_rate_all_lm)
-
-# Variance components
-trt_var <- as.numeric(v1b_all$`Treatment`)          # Variance for Treatment
-seasonid2_var <- as.numeric(v1b_all$`Season_year`)   # Variance for Season_year
-genotypeid2_var <- as.numeric(v1b_all$`Genotype_ID`) # Variance for Genotype_ID
-
-# Calculate residual variance using the direct standard deviation value
-residual_std_dev <- 8.4247
-res_var_id2 <- residual_std_dev^2
-
-# Calculate ICC for each component
-ICC_trt_varid2 <- trt_var / (trt_var + seasonid2_var + genotypeid2_var + res_var_id2)      # ICC for Treatment
-ICC_seasn_varid2 <- seasonid2_var / (trt_var + seasonid2_var + genotypeid2_var + res_var_id2)  # ICC for Season_year
-ICC_genotype_varid2 <- genotypeid2_var / (trt_var + seasonid2_var + genotypeid2_var + res_var_id2)  # ICC for Genotype_ID
-ICC_residual_varid2 <- res_var_id2 / (trt_var + seasonid2_var + genotypeid2_var + res_var_id2)   # ICC for Residuals
-
-# Sum of ICC components (should equal 1 or close to 100%)
-ICC_trt_varid2 + ICC_seasn_varid2 + ICC_genotype_varid2 + ICC_residual_varid2
-
-```
-# DATA SET 4
-Interpretation: Variance explained by treatment, season_year, genotype within season_year, and random variation under control condition.
-
-## Data subsetthree: Contrasting Results after Filtering Out B73
-
-**Objective**: Compare results from the previous models by filtering out genotype **B73** and rerunning the model.
-
-### Model Specification
-- **Model Name**: `Drought_crossed_m6_noB73`
-- **Formula**: `growth_L4 ~ 1 + (1 | Treatment) + (1 | Season_Year / Genotype)`
-
-### Intraclass Correlation Coefficient (ICC) Analysis
-1. **Percent Variance of Treatment**
-2. **Percent Variance of Season_year**
-3. **Percent Variance of Genotype within Season_year**
-4. **Percent Variance of Residual**
+1. **Percent Variance of Season_year**: 
+2. **Percent Variance of Genotype**: 
+3. **Percent Variance of Residual**: 
 
 ### Interpretation
-The ICC values in this model provide insight into how much variance is explained by **Treatment**, **Season_year**, **Genotype within Season_year**, and **Residual** after filtering out **B73**.
-
+The ICC analysis suggests that **Season_year** explains most of the variance under the control condition, with no variance attributed to **Genotype**.
 ```{r}
 # Load necessary libraries
 library(lme4)
 library(lmerTest)
-library(dplyr)
 
-# Filter for Leaf "four" to exclude summer data
-growth_rate_all_l4 <- subset(growth_rate_all, Leaf == "four")
-
-# Further subset by excluding B73 genotype
-growth_rate_noB73 <- growth_rate_all_l4 %>%
-  filter(Genotype_ID != "B73")
+# Step 1: Subset to control 
+control_allyears_normalized <- subset(test1d, Treatment == "Control" & Leaf == "four")
+table(control_allyears_normalized$Season_year)
 
 # Create Season_Year column for nested random effects
-growth_rate_noB73$Season_year <- paste(growth_rate_noB73$Season, growth_rate_noB73$Year, sep = "_")
+control_allyears_normalized$Season_year <- paste(control_allyears_normalized$Season, control_allyears_normalized$Year, sep = "_")
 
-# Fit the linear mixed-effects model
-growth_rate_noB73_lm <- lmer(GrowthRate ~ 1 + (1 | Treatment) + (1 | Season_year/Genotype_ID), 
-                             data = growth_rate_noB73)
+# Further subset for specific seasons 
+control_allyearsID3_normalized <- subset(control_allyears_normalized,
+                              Season_year == c("Summer_2021","Summer_2022", "Fall_2022", "SPRING_2024")) # No summer 2024-- added in Spring_2023
 
-# Display model summary
-summary(growth_rate_noB73_lm)
+unique(control_allyearsID3_normalized$Genotype_ID)
 
-# Extract the variance from the model
-v1_all3 <- VarCorr(growth_rate_noB73_lm)
+# Subset for specific genotype IDs
+control_allyearsthird_normalized <- subset(control_allyearsID3_normalized, 
+                                Genotype_ID == c("B73", "HP301", 
+                                                 "NC350", "OH7B", 
+                                                 "ki11")) 
 
-# Variance components for each random effect
-trt_varid3 <- as.numeric(v1_all3$`Treatment`)         # Treatment
-seasonid3_var <- as.numeric(v1_all3$`Genotype_ID:Season_year`)    # 
-# Using a specified residual standard deviation value
-residual_std_dev3 <- sigma(growth_rate_noB73_lm)
-res_var_id3 <- residual_std_dev3^2
+# Recreate Season_Year column for this subset
+control_allyearsthird_normalized$Season_year <- paste(control_allyearsthird_normalized$Season, 
+                                           control_allyearsthird_normalized$Year, 
+                                           sep = "_")
 
-# Calculate ICC for each component
-ICC_trt_varid3 <- trt_varid3 / (trt_varid3 + seasonid3_var + res_var_id3)      # ICC for Treatment
-ICC_season_genotype_varid3 <- seasonid3_var / (trt_varid3  + seasonid3_var + res_var_id3)  # ICC for Genotype_ID
-ICC_residual_varid3 <- res_var_id3 / (trt_varid3 + seasonid3_var + res_var_id3)   # ICC for Residuals
+table(control_allyearsthird_normalized$Season_year,control_allyearsthird_normalized$Genotype_ID)
 
-# Sum of ICC components (should equal 1 or close to 100%)
-ICC_trt_varid3  + ICC_season_genotype_varid3 + ICC_residual_varid3
+
+# Fit the linear mixed-effects model -- Season year is ~0
+Con_all_years_lm_third_model_normalized <- lmer(norm_GrowthRate ~ 1 + (1 | Genotype_ID), 
+                                     data = control_allyearsthird_normalized)
+
+# Model summary for ANOVA
+summary(Con_all_years_lm_third_model_normalized)
+
+# Extract the variance from the model 
+v1_con_all_third_normalized <- VarCorr(Con_all_years_lm_third_model_normalized)
+
+# Variance for Genotype_ID
+var_genotypeID_3_normalized <- as.numeric(v1_con_all_third_normalized$`Genotype_ID`)
+
+# Variance for Season_year
+#seasonyr_var_third <- as.numeric(v1_con_all_third$`Season_year`)
+
+# Calculate residual variance 
+residual_all_data3_norm <- sigma(Con_all_years_lm_third_model_normalized)^2  # Residual variance 
+
+# Calculate ICC for Genotype_ID
+genotype_data3_norm <- var_genotypeID_3_normalized / (var_genotypeID_3_normalized + residual_all_data3_norm)  # calculate variance for Genotype_ID 
+
+# Calculate ICC for Season_year
+#ICC_control3 <- seasonyr_var_third / (var_genotypeID_3 + seasonyr_var_third + res_control_var_third)  # ICC for Season 
+
+# Calculate for residuals
+residualdata_3_norm <- residual_all_data3_norm / (var_genotypeID_3_normalized + residual_all_data3_norm)  # calculate variance for residuals 
+
+genotype_data3_norm*100  + residualdata_3_norm*100 #+ ICC_control3*100
 ```
 
-DATA SET 5 → Drought and shade 
+
+D) DATA SET 4 → Drought 
 
 ## Model for Summer 2023: Crossed Effects for Treatment and Genotype
 
@@ -821,14 +892,24 @@ library(dplyr)
 growth_rate_all$Season_year <- paste(growth_rate_all$Season, growth_rate_all$Year, sep = "_")
 
 # Filter dataset for Summer 2023
-growth_rate_crossed_2023 <- subset(growth_rate_all, Season_year == "Summer_2023")
+growth_rate_crossed_2023a <- subset(growth_rate_all, Season_year == "Summer_2023")
+unique(growth_rate_crossed_2023a$Genotype_ID)
+
+
+growth_rate_crossed_2023 <- subset(growth_rate_crossed_2023a, Treatment == c("Control","Drought"))
+table(growth_rate_crossed_2023$Treatment,growth_rate_crossed_2023$Season_year)
+table(growth_rate_crossed_2023$Treatment,growth_rate_crossed_2023$Genotype_ID)
 
 # Fit the linear mixed-effects model
 Summer2023_crossed_m7 <- lmer(GrowthRate ~ 1 + (1 | Treatment) + (1 | Genotype_ID), 
                               data = growth_rate_crossed_2023)
 
+s2023_fixed<-lmer(GrowthRate ~ (Treatment) + (1 | Genotype_ID),data = growth_rate_crossed_2023)
+summary(s2023_fixed) # No drought effect 
+
 # Display model summary
 summary(Summer2023_crossed_m7)
+table(growth_rate_crossed_2023$Treatment,growth_rate_crossed_2023$Genotype_ID)
 
 # Extract variance components from the model
 v1_m7 <- VarCorr(Summer2023_crossed_m7)
@@ -840,8 +921,8 @@ trt_m7 <- as.numeric(v1_m7$`Treatment`)
 genotypeid_m7 <- as.numeric(v1_m7$`Genotype_ID`)
 
 # Define the residual standard deviation and calculate residual variance
-residual_std_dev3 <- 8.572
-res_var_id3 <- residual_std_dev3^2
+
+res_var_id3 <- sigma(Summer2023_crossed_m7)^2
 
 # Calculate ICC for each component
 ICC_trt_m7 <- trt_m7 / (trt_m7 + genotypeid_m7 + res_var_id3)                # ICC for Treatment
@@ -849,461 +930,72 @@ ICC_genotype_m7 <- genotypeid_m7 / (trt_m7 + genotypeid_m7 + res_var_id3)    # I
 ICC_residual_m7 <- res_var_id3 / (trt_m7 + genotypeid_m7 + res_var_id3)      # ICC for Residual
 
 # Sum of ICC components (should ideally sum to 1 or close to 100%)
-ICC_trt_m7 + ICC_genotype_m7*100 + ICC_residual_m7
+ICC_trt_m7*100 + ICC_genotype_m7*100+ ICC_residual_m7*100
 ```
-###############################################################################################################################
-RERUN EVERYTHING WITH THE NORMALIZED DATA 
-## Data Normalization
+ D) DATA SET 4 → Drought Normalized
 
-
-### Objective
-Normalize the data to the B73 control to account for large variation across `Season_year`.
-
-### Steps
-1. **Identify**: Use B73 control samples as the baseline.
-2. **Normalize**: Adjust other samples relative to the B73 control across `Season_year`.
-3. **Interpret**: Evaluate normalized values to reduce seasonal variation effects.
-
-```{r}
-# Load necessary library
-library(dplyr)
-
-# Normalize the dataset by centering numeric columns around the mean of the control group (B73)
-test1d <- growth_rate_all %>%
-  
-  # Group the data by 'Season' and 'Year' to perform calculations within these subsets
-  group_by(Season, Year) %>%
-  
-  # Create new normalized columns by adjusting numeric values relative to the B73 control mean
-  mutate(
-    across(
-      where(is.numeric),  # Apply normalization to all numeric columns
-      ~ . - mean(.x[Genotype_ID == 'B73'], na.rm = TRUE),  # Subtract mean of B73 control
-      .names = "norm_{.col}"  # Prefix new normalized columns with "norm_"
-    )
-  ) %>%
-  
-  # Remove grouping structure to finalize the dataset
-  ungroup()
-```
-
-
-DATASET 1
-*Statistical analyses of experimental error and variation*
-# DATA SET 1 -> B73 
-# Technical Validation cont. : Assessment of experimental error and variation (nested random effects model) for growth_rate_all dataset
-# ICC
-Groups      Name        Std.Dev.
- Season_year (Intercept) 11.0056 
- Residual                 6.3088 
-# Interpretation: Variance explained by season_year vs random variation for a single genotype under control condition
-## Filter B73 Control trail 1 
-## Percent variance of Season_year: 68.72 %
-## Percent variance of residual (unexplained): 31.28 % 
-## Model: B73_m1 <- lmer(growth_L4 ~ 1 + (1 | Season_year)
-```{r}
-# Load necessary libraries
-library(lme4)          # For linear mixed-effects models
-library(lmerTest)      # For significance testing in mixed models
-
-growth_rate_all<-subset(test1d, Leaf!="five")
-# Display unique leaf types in the dataset
-unique(growth_rate_all$Leaf)
-
-# Step 1: Subset the data to include only the control group for genotype B73 with leaf type "four"
-b73_control <- subset(growth_rate_all, 
-                      Genotype_ID == "B73" & 
-                      Treatment == "Control" & 
-                      Leaf == "four")  # Filter specifically for B73 Control with Leaf "four"
-
-# Display unique values for verification
-unique(b73_control$Genotype_ID)  # Verify Genotype_ID
-unique(b73_control$Treatment)    # Verify Treatment
-unique(b73_control$Leaf)         # Verify Leaf type
-
-# Create a new column combining Season and Year for grouping purposes
-b73_control$Season_year <- paste(b73_control$Season, b73_control$Year, sep = "_")
-
-# Display column names to confirm structure
-colnames(b73_control)
-
-# Step 2: Fit the linear mixed-effects model
-B73_m1 <- lmer(norm_GrowthRate ~ 1 + (1 | Season_year), data = b73_control)
-
-# Check significance of random effects
-rand(B73_m1)  # Note: 'rand()' function might need definition if not available in lmerTest
-
-# Display model summary and ANOVA results for B73 model
-summary(B73_m1)
-anova(B73_m1)
-
-# Step 3: Calculate Intraclass Correlation Coefficient (ICC)
-cov1 <- VarCorr(B73_m1)   # Extract covariance of Season_year from the model
-cov1                      # View covariance components
-
-s2u1 <- as.numeric(cov1$`Season_year`)  # Extract variance of Season_year
-s2e1 <- sigma(B73_m1)^2                 # Calculate residual variance
-
-# Calculate percentage of variance explained by Season_year (ICC)
-variance_season_year <- s2u1 / (s2u1 + s2e1) * 100  # Approx. 37.49% variance explained by Season_year
-
-# Calculate the percentage of variance attributed to residuals
-percent_variance_residual <- (s2e1 / (s2u1 + s2e1)) * 100
-
-# Step 4: Visualize Residuals
-residual_control <- resid(B73_m1)   # Extract residuals from the model
-qqnorm(residual_control)            # Q-Q plot to check normality of residuals
-
-# Step 5: Create a boxplot to visualize growth rate by Season and Year
-p1 <- b73_control %>% 
-  ggplot(aes(x = Season_year, y = GrowthRate, fill = Season_year)) +
-  geom_boxplot()                    # Generate boxplot for growth rate by Season_year
-
-# Display the plot
-p1
-```
-
-## Model Analysis: Control Data Only
+## Model for Summer 2023: Crossed Effects for Treatment and Genotype
 
 **Filtering Criteria**  
-- **Condition**: Control
-- **Genotypes Excluded**: B73, HP301, NC350, OH7b, Ki11
+- **Season**: Summer 2023  
 
 **Model Specification**  
-- **Model Name**: `Control_m2`
-- **Formula**: `growth_L4 ~ 1 + (1 | Season_year / Genotype)`
+- **Model Name**: `Summer2023_crossed_m7`
+- **Formula**: `growth_L4 ~ 1 + (1 | Treatment) + (1 | Genotype)`
 
 **Intraclass Correlation Coefficient (ICC) Analysis**  
-2. **Percent Variance of Genotype within Season_year**: 47.4%
-3. **Percent Variance of Residual**: 18.1%
+1. **Percent Variance of Treatment**
+2. **Percent Variance of Genotype**
+3. **Percent Variance of Residual**
 
 **Interpretation**  
-The ICC analysis provides insights into the variance explained by **Season_year**, **Genotype within Season_year**, and **random variation** under control conditions.
-
-```{r}
-# Load necessary libraries
-library(lme4)
-library(lmerTest)
-
-# Step 1: Subset to control treatment and leaf four
-control_allyearsfilt <- subset(test1d, Treatment == "Control" & Leaf == "four")
-
-# Subset for specific genotype IDs
-control_allyearsID_filt <- subset(control_allyearsfilt, 
-                                  Genotype_ID %in% c("B97", "CML322", "CML52", "CML69", 
-                                                     "Mo18w", "CML 277", "CML247", 
-                                                     "CML103", "CML228", "Ky21", 
-                                                     "M37w", "Ms71", "Tx303", 
-                                                     "NC358", "Oh43", "Tzi8", 
-                                                     "CML333", "M162W"))
-
-# Check unique Genotype IDs to confirm filtering
-unique(control_allyearsID_filt$Genotype_ID)
-
-# Create Season_year column for nested random effects
-control_allyearsID_filt$Season_year <- paste(control_allyearsID_filt$Season, control_allyearsID_filt$Year, sep = "_")
-
-# Fit the linear mixed-effects model
-Con_all_years_lm_fit <- lmer(norm_GrowthRate ~ 1 + (1 | Season_year / Genotype_ID), data = control_allyearsID_filt)
-
-# Model summary for ANOVA
-summary(Con_all_years_lm_fit)
-
-# Extract variance components from the model
-v1_con_all_fit <- VarCorr(Con_all_years_lm_fit)
-
-# Variance components
-nested_var_fit <- as.numeric(v1_con_all_fit$`Genotype_ID:Season_year`)  #     # Variance for Season_year
-res_control_var_fit <- sigma(Con_all_years_lm_fit)^2                    # Residual variance 
-
-# Calculate ICC for each component
-ICC_nest2_fit <- nested_var_fit / (nested_var_fit + res_control_var_fit)  #   # ICC for Season_year
-ICC_residual_fit <- res_control_var_fit / (nested_var_fit + res_control_var_fit)  # ICC for Residuals
-
-# Sum of ICC components (should ideally equal 1 or 100%)
-ICC_nest2_fit + ICC_residual_fit
-```
-#Third dataset → Control and genotype by year - is signular 
-## Model Analysis: Crossed Effects for Control Condition
-
-**Model Specification**  
-- **Model Name**: `Control_crossed_m3`
-- **Formula**: `growth_L4 ~ 1 + (1 | Season_year) + (1 | Genotype)`
-
-**Intraclass Correlation Coefficient (ICC) Analysis**  
-1. **Percent Variance of Season_year**: 6.65%
-2. **Percent Variance of Genotype**: 93.34%
-3. **Percent Variance of Residual**: 0.001%
-
-**Interpretation**  
-The ICC analysis shows the variance explained by **Season_year**, **Genotype**, and **random variation (Residual)** under control conditions.
-```{r}
-# Load necessary libraries
-library(lme4)
-library(lmerTest)
-
-# Step 1: Subset data for control treatment and leaf four
-control_allyears_norm <- subset(test1d, Treatment == "Control" & Leaf == "four")
-
-# Add Season_year column
-control_allyears_norm$Season_year <- paste(control_allyears_norm$Season, control_allyears_norm$Year, sep = "_")
-
-# Further subset data for specific seasons
-control_allyearsID3_norm <- subset(control_allyears_norm, 
-                                   Season_year %in% c("Summer_2021", "Summer_2022", 
-                                                      "Fall_2022", "Spring_2024", 
-                                                      "Summer_2024"))
-
-# Subset data for specific genotype IDs
-control_allyearsthird_norm <- subset(control_allyearsID3_norm, 
-                                     Genotype_ID %in% c("B73", "HP301", 
-                                                        "NC350", "OH7b", 
-                                                        "Ki11"))
-
-# Fit the linear mixed-effects model
-Con_all_years_lm_third_model_norm <- lmer(norm_GrowthRate ~ 1 + (1 | Season_year) + (1 | Genotype_ID), 
-                                          data = control_allyearsthird_norm)
-
-# Display model summary
-summary(Con_all_years_lm_third_model_norm)
-
-# Extract variance components
-v1_con_all_third_norm <- VarCorr(Con_all_years_lm_third_model_norm)
-
-# Variance components for Genotype_ID, Season_year, and residuals
-var_third_norm <- as.numeric(v1_con_all_third_norm$`Genotype_ID`)
-seasonyr_var_third_norm <- as.numeric(v1_con_all_third_norm$`Season_year`)
-res_control_var_third_norm <- sigma(Con_all_years_lm_third_model_norm)^2
-
-# Calculate ICC for each component
-ICC_var_gen3_norm <- var_third_norm / (var_third_norm + seasonyr_var_third_norm + res_control_var_third_norm) * 100
-ICC_seasonyr_3_norm <- seasonyr_var_third_norm / (var_third_norm + seasonyr_var_third_norm + res_control_var_third_norm) * 100
-ICC_residual3_norm <- res_control_var_third_norm / (var_third_norm + seasonyr_var_third_norm + res_control_var_third_norm) * 100
-
-# Sum of ICC components (should be close to 100%)
-ICC_var_gen3_norm + ICC_seasonyr_3_norm + ICC_residual3_norm
-```
-
-NOTE: CANNOT NEST WHEN ONLY ONE LEVEL, SUMMER 2024 IS NOT AVAILABLE FOR 4TH LEAF ONLY 5TH LEAF -- So cannot run
-## Model Analysis: Drought Treatment by Year
-
-**Filtering Criteria**  
-- **Treatment**: Control or Drought
-- **Seasons**: Summer 2023, Summer 2024
-- **Genotypes**: B73, CML333, M162W, OH7b, NC350, HP301
-
-**Model Specification**  
-- **Model Name**: `Drought_partiallycrossed_m4`
-- **Formula**: `growth_L4 ~ 1 + (1 | Treatment) + (1 | Season_year / Genotype)`
-
-**Intraclass Correlation Coefficient (ICC) Analysis**  
-1. **Percent Variance of Treatment**: Variance attributed to treatment differences (Control vs. Drought)
-2. **Percent Variance of Season_year**: Variance explained by seasonal differences
-3. **Percent Variance of Genotype within Season_year**: Variance due to genotype differences nested within season_year
-
-**Interpretation**  
-This model aims to assess the contributions of treatment, seasonal differences, and genotype (nested within each season) to the overall variance in growth rates. Note that **B73 is fully crossed**, whereas **other genotypes are nested** within each `Season_year`, reflecting their availability across seasons.
-
-```{r}
-# Load necessary libraries
-library(lme4)
-library(lmerTest)
-
-# Step 1: Subset to control and drought treatments for leaf four
-control_drought_norm <- subset(test1d, Treatment %in% c("Control", "Drought") & Leaf == "four")
-
-# Create Season_year column
-control_drought_norm$Season_year <- paste(control_drought_norm$Season, control_drought_norm$Year, sep = "_")
-
-# Further subset for the season Summer 2023 (as Summer 2024 is not available for leaf four)
-control_drought_4a_norm <- subset(control_drought_norm, Season_year == "Summer_2023")
-
-# Subset for specific genotype IDs
-control_drought_4_norm <- subset(control_drought_4a_norm, Genotype_ID %in% c("B73", "HP301", "NC350", "OH7b", "CML333", "M162W"))
-
-# Fit the linear mixed-effects model
-Con_all_years_lm_fourth_model_norm <- lmer(norm_GrowthRate ~ 1 + (1 | Treatment) + (1 | Season_year / Genotype_ID), 
-                                           data = control_drought_4_norm)
-
-# Display model summary
-summary(Con_all_years_lm_fourth_model_norm)
-
-# Extract variance components
-v1_con_all_third_norm <- VarCorr(Con_all_years_lm_fourth_model_norm)
-
-# Variance components for Genotype_ID, Season_year, and residuals
-var_third_norm <- as.numeric(v1_con_all_third_norm$`Genotype_ID:Season_year`)
-seasonyr_var_third_norm <- as.numeric(v1_con_all_third_norm$`Season_year`)
-res_control_var_third_norm <- sigma(Con_all_years_lm_fourth_model_norm)^2
-
-# Calculate ICC for each component
-ICC_var_gen3_norm <- var_third_norm / (var_third_norm + seasonyr_var_third_norm + res_control_var_third_norm) * 100
-ICC_control3_norm <- seasonyr_var_third_norm / (var_third_norm + seasonyr_var_third_norm + res_control_var_third_norm) * 100
-ICC_residual3_norm <- res_control_var_third_norm / (var_third_norm + seasonyr_var_third_norm + res_control_var_third_norm) * 100
-
-# Sum of ICC components (should be close to 100%)
-ICC_var_gen3_norm + ICC_control3_norm + ICC_residual3_norm
-
-```
-
-Idea 2: maybe contrast this with...Cannot get to run because model is not fitting?
-## Model Analysis: Drought Treatment (Fully Crossed)
-
-**Model Specification**  
-- **Model Name**: `Drought_fullycrossed_m5`
-- **Formula**: `growth_L4 ~ 1 + (1 | Treatment) + (1 | Season_year) + (1 | Genotype)`
-
-**Intraclass Correlation Coefficient (ICC) Analysis**  
-1. **Percent Variance of Treatment**: 35.96%
-2. **Percent Variance of Season_year**: 1.25%
-3. **Percent Variance of Genotype**: 36.56%
-4. **Percent Variance of Residual**: 26.22%
-
-**Interpretation**  
-The ICC analysis shows the variance explained by treatment, seasonal effects, genotype differences, and random variation under control conditions. This model evaluates how much variance each factor contributes independently within a fully crossed design, where treatment, season_year, and genotype are all accounted for as random effects.
-
-```{r}
-# Load necessary libraries
-library(lme4)
-library(lmerTest)
-
-# Filter to leaf four only and normalize data
-growth_rate_all_l4_norm <- subset(test1d, Leaf == "four")
-
-# Create a Season_year column
-growth_rate_all_l4_norm$Season_year <- paste(growth_rate_all_l4_norm$Season, growth_rate_all_l4_norm$Year, sep = "_")
-
-# Fit the linear mixed-effects model
-growth_rate_all_lm_norm <- lmer(norm_GrowthRate ~ 1 + (1 | Treatment) + (1 | Season_year) + (1 | Genotype_ID), data = growth_rate_all_l4_norm)
-
-# Display model summary
-summary(growth_rate_all_lm_norm)
-
-# Check for NA values in GrowthRate
-any(is.na(growth_rate_all_l4_norm$GrowthRate))
-
-# Extract variance components
-v1b_all_norm <- VarCorr(growth_rate_all_lm_norm)
-
-# Calculate variance for each component
-trt_var_norm <- as.numeric(v1b_all_norm$`Treatment`)           # Treatment
-seasonid2_var_norm <- as.numeric(v1b_all_norm$`Season_year`)   # Season_year
-genotypeid2_var_norm <- as.numeric(v1b_all_norm$`Genotype_ID`) # Genotype_ID
-residual_std_dev_norm <- 8.4247                                # Provided residual standard deviation
-res_var_id2_norm <- residual_std_dev_norm^2                    # Residual variance
-
-# Calculate ICC for each variance component
-ICC_trt_varid2_norm <- trt_var_norm / (trt_var_norm + seasonid2_var_norm + genotypeid2_var_norm + res_var_id2_norm) * 100
-ICC_seasn_varid2_norm <- seasonid2_var_norm / (trt_var_norm + seasonid2_var_norm + genotypeid2_var_norm + res_var_id2_norm) * 100
-ICC_genotype_varid2_norm <- genotypeid2_var_norm / (trt_var_norm + seasonid2_var_norm + genotypeid2_var_norm + res_var_id2_norm) * 100
-ICC_residual_varid2_norm <- res_var_id2_norm / (trt_var_norm + seasonid2_var_norm + genotypeid2_var_norm + res_var_id2_norm) * 100
-
-# Sum of ICC components (should be approximately 100%)
-ICC_trt_varid2_norm + ICC_seasn_varid2_norm + ICC_genotype_varid2_norm + ICC_residual_varid2_norm
-total_ICC
-
-```
-ID 3 now subset 4 
-Interpretation: Variance explained by treatment, season_year, genotype within season_year, and random variation under control condition.
-
-## Model Analysis: Drought Treatment Excluding B73 (Crossed Design)
-
-**Model Specification**  
-- **Model Name**: `Drought_crossed_m6_noB73`
-- **Formula**: `growth_L4 ~ 1 + (1 | Treatment) + (1 | Season_year / Genotype)`
-
-**Intraclass Correlation Coefficient (ICC) Analysis**  
-1. **Percent Variance of Treatment**: 26.7%
-2. **Percent Variance of Genotype within Season_year**: 38.14%
-3. **Percent Variance of Residual**: 35.15%
-
-**Interpretation**  
-This ICC analysis shows the variance explained by treatment effects, genotype differences nested within season-year, and random residual variation. This design controls for the influence of B73 by excluding it and observes the distribution of variance in response to treatment within each season-year genotype grouping.
-
+The ICC analysis provides the variance explained by **Treatment**, **Genotype**, and **random variation** under the control condition for Summer 2023.
 ```{r}
 # Load necessary libraries
 library(lme4)
 library(lmerTest)
 library(dplyr)
 
-# Filter to include only leaf four and exclude genotype B73
-growth_rate_noB73_norm <- test1d %>%
-  filter(Leaf == "four", Genotype_ID != "B73")
-
-# Create Season_year column for model
-growth_rate_noB73_norm$Season_year <- paste(growth_rate_noB73_norm$Season, growth_rate_noB73_norm$Year, sep = "_")
-
-# Fit the linear mixed-effects model
-growth_rate_noB73_lmnorm <- lmer(norm_GrowthRate ~ 1 + (1 | Treatment) + (1 | Season_year / Genotype_ID), 
-                                 data = growth_rate_noB73_norm)
-summary(growth_rate_noB73_lmnorm)
-
-# Extract variance components from the model
-v1_all3_norm <- VarCorr(growth_rate_noB73_lmnorm)
-
-# Variance for each random effect
-trt_varid3_norm <- as.numeric(v1_all3_norm$`Treatment`)
-seasonid_genotype3_var_norm <- as.numeric(v1_all3_norm$`Genotype_ID:Season_year`)
-
-# Define residual variance directly
-residual_std_dev3_norm <- 8.739
-res_var_id3_norm <- residual_std_dev3_norm^2
-
-# Calculate ICC for each component
-ICC_trt_varid3_norm <- trt_varid3_norm / (trt_varid3_norm + seasonid_genotype3_var_norm + res_var_id3_norm)  
-ICC_seasn_genoy_varid3_norm <- seasonid_genotype3_var_norm / (trt_varid3_norm + seasonid_genotype3_var_norm + res_var_id3_norm)
-ICC_residual_varid3_norm <- res_var_id3_norm / (trt_varid3_norm + seasonid_genotype3_var_norm + res_var_id3_norm)
-
-# Sum of ICC components
-ICC_trt_varid3_norm*100 + ICC_seasn_genoy_varid3_norm*100 + ICC_residual_varid3_norm*100
-```
-### Fifth Dataset Analysis: Drought and Shade
-
-**Filter**: Summer 2023  
-**Model**: `Summer2023_crossed_m7 <- lmer(growth_L4 ~ 1 + (1 | Treatment) + (1 | Genotype))`  
-**Intraclass Correlation Coefficients (ICC)**:  
-1. Percent variance of Treatment = 69.7%  
-2. Percent variance of Genotype = 0.79%  
-3. Percent variance of Residual = 29.47%  
-
-**Interpretation**: This analysis quantifies the variance explained by treatment, season_year, genotype, and random variation under control conditions.
-
-```{r}
-# Load necessary libraries
-library(lme4)
-library(lmerTest)
-
-# Create Season_Year variable in dataset
+# Add Season_Year column to the dataset for filtering
 test1d$Season_year <- paste(test1d$Season, test1d$Year, sep = "_")
 
-# Subset to Summer 2023 and Leaf Four
-growth_rate_crossed_2023_Nrom <- subset(test1d, Season_year == "Summer_2023")
+# Filter dataset for Summer 2023
+growth_rate_crossed_2023a_norm <- subset(test1d, Season_year == "Summer_2023")
+unique(growth_rate_crossed_2023a_norm$Genotype_ID)
+
+
+growth_rate_crossed_2023a_norm <- subset(growth_rate_crossed_2023a_norm, Treatment == c("Control","Drought"))
+table(growth_rate_crossed_2023a_norm$Treatment,growth_rate_crossed_2023a_norm$Season_year)
+table(growth_rate_crossed_2023a_norm$Treatment,growth_rate_crossed_2023a_norm$Genotype_ID)
 
 # Fit the linear mixed-effects model
-Summer2023_crossed_m7_norm <- lmer(norm_GrowthRate ~ 1 + (1 | Treatment) + (1 | Genotype_ID), 
-                                   data = growth_rate_crossed_2023_Nrom)
+Summer2023_crossed_m7_norm <- lmer(norm_GrowthRate ~ 1 + (1 | Treatment) + (1|Genotype_ID), 
+                              data = growth_rate_crossed_2023a_norm)
+
+# Display model summary
 summary(Summer2023_crossed_m7_norm)
+table(growth_rate_crossed_2023a_norm$Treatment,growth_rate_crossed_2023a_norm$Genotype_ID)
 
 # Extract variance components from the model
-v1_m7_norm <- VarCorr(Summer2023_crossed_m7_norm)
+varcor_normD<- VarCorr(Summer2023_crossed_m7_norm)
 
 # Variance for Treatment
-trt_m7_norm <- as.numeric(v1_m7_norm$`Treatment`)
+trt_normD <- as.numeric(varcor_normD$`Treatment`)
 
 # Variance for Genotype_ID
-genotypeid_m7_norm <- as.numeric(v1_m7_norm$`Genotype_ID`)
+genotype_id_norm_D <- as.numeric(varcor_normD$`Genotype_ID`)
 
-# Residual variance using specified standard deviation
-residual_std_dev3_norm <- 6.5455
-res_var_id3_norm <- residual_std_dev3_norm^2
+# Define the residual standard deviation and calculate residual variance
+
+residual_var_Dnorm <- sigma(Summer2023_crossed_m7_norm)^2
 
 # Calculate ICC for each component
-ICC_trt_varid3_norm <- trt_m7_norm / (trt_m7_norm + genotypeid_m7_norm + res_var_id3_norm)
-ICC_genotype_varid3_norm <- genotypeid_m7_norm / (trt_m7_norm + genotypeid_m7_norm + res_var_id3_norm)
-ICC_resid_varid3_norm <- res_var_id3_norm / (trt_m7_norm + genotypeid_m7_norm + res_var_id3_norm)
+treatment_normD <- trt_normD / (trt_normD  + residual_var_Dnorm+genotype_id_norm_D)                # Variance of Treatment
+ normalized_genotype <- genotype_id_norm_D / (trt_normD  + residual_var_Dnorm+genotype_id_norm_D)    # ICC for Genotype_ID
+residual_variance_normD<- residual_var_Dnorm / (trt_normD  + residual_var_Dnorm+genotype_id_norm_D)      # Variance of Residual
 
-# Sum of ICC components
-ICC_trt_varid3_norm*100 + ICC_genotype_varid3_norm*100 + ICC_resid_varid3_norm*100
+# Sum of ICC components (should ideally sum to 1 or close to 100%)
+treatment_normD*100 + residual_variance_normD*100 + normalized_genotype*100
 ```
 
 RAN SPRING 2024 TO CREATE A GROWTH RATE TABLE TO ADD TO THE METADATA 
